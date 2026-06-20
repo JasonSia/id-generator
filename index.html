@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ID Card Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        h1 {
+            color: #1a1a2e;
+            margin-bottom: 2rem;
+        }
+
+        .container {
+            display: flex;
+            gap: 3rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        /* Form Styles */
+        .form-section {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            width: 360px;
+        }
+
+        .form-section h2 {
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="file"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+            background: #fff;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #4a90d9;
+        }
+
+        .toggle-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #555;
+            cursor: pointer;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 36px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #ccc;
+            border-radius: 20px;
+            transition: background 0.3s;
+        }
+
+        .slider::before {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            left: 2px;
+            bottom: 2px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .switch input:checked + .slider {
+            background: #4a90d9;
+        }
+
+        .switch input:checked + .slider::before {
+            transform: translateX(16px);
+        }
+
+        .photo-preview {
+            width: 120px;
+            height: 150px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 0.5rem;
+            overflow: hidden;
+            background: #fafafa;
+        }
+
+        .photo-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-preview span {
+            color: #aaa;
+            font-size: 0.8rem;
+            text-align: center;
+            padding: 0.5rem;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.85rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-generate {
+            background: #4a90d9;
+            color: #fff;
+        }
+
+        .btn-generate:hover {
+            background: #357abd;
+        }
+
+        .btn-print {
+            background: #27ae60;
+            color: #fff;
+            margin-top: 1rem;
+        }
+
+        .btn-print:hover {
+            background: #1e8e4e;
+        }
+
+        /* Card Styles */
+        .card-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .card-section h2 {
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+        .id-card {
+            width: 85.6mm;
+            height: 53.98mm;
+            background: linear-gradient(135deg, #a8c8e8 0%, #b8d4f0 50%, #c8e0f8 100%);
+            border-radius: 8px;
+            padding: 0.75rem;
+            padding-bottom: 2.5rem;
+            color: #333;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .id-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .card-header {
+            text-align: center;
+            margin-bottom: 0.4rem;
+            border-bottom: 1px solid rgba(0,0,0,0.15);
+            padding-bottom: 0.3rem;
+        }
+
+        .card-header h3 {
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #444;
+        }
+
+        .card-body {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .card-photo {
+            width: 85px;
+            height: 105px;
+            background: #fff;
+            border-radius: 4px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .card-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .card-info .field {
+            margin-bottom: 0.3rem;
+        }
+
+        .card-info .field-label {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #666;
+        }
+
+        .card-info .field-value {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #222;
+        }
+
+        .card-additional {
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            font-size: 0.55rem;
+            color: #555;
+            text-align: center;
+            font-style: italic;
+        }
+
+        .card-barcode {
+            position: absolute;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .card-barcode svg {
+            height: 22px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: #fff;
+                padding: 0;
+            }
+
+            .form-section,
+            .btn-print,
+            h1,
+            .card-section h2 {
+                display: none !important;
+            }
+
+            .card-section {
+                margin: 0;
+            }
+
+            .id-card {
+                box-shadow: none;
+                margin: 0 auto;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>ID Card Generator</h1>
+
+    <div class="container">
+        <!-- Form Section -->
+        <div class="form-section">
+            <h2>Enter Details</h2>
+            <form id="idForm">
+                <div class="form-group">
+                    <label for="cardTitle">Card Header</label>
+                    <input type="text" id="cardTitle" placeholder="e.g. Staff ID Card, Library Card" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="fullName">Full Name</label>
+                    <input type="text" id="fullName" placeholder="Enter full name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="idNumber">ID Number</label>
+                    <input type="text" id="idNumber" placeholder="Enter ID number" required>
+                    <label class="toggle-label">
+                        <span class="switch">
+                            <input type="checkbox" id="maskId">
+                            <span class="slider"></span>
+                        </span>
+                        Mask first 6 characters
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label for="photo">Identity Photo</label>
+                    <input type="file" id="photo" accept="image/*">
+                    <div class="photo-preview" id="photoPreview">
+                        <span>No photo selected</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="cardColor">Color</label>
+                    <select id="cardColor">
+                        <option value="pastelBlue">Blue</option>
+                        <option value="pastelPink">Pink</option>
+                        <option value="pastelLavender">Lavender</option>
+                        <option value="pastelMint">Mint</option>
+                        <option value="pastelPeach">Peach</option>
+                        <option value="pastelYellow">Yellow</option>
+                        <option value="pastelLilac">Lilac</option>
+                        <option value="pastelSage">Sage</option>
+                        <option value="pastelCoral">Coral</option>
+                        <option value="pastelSky">Sky</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="additionalInfo">Additional Information</label>
+                    <textarea id="additionalInfo" placeholder="e.g. If found please call 012-345-6789" rows="3"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-generate">Generate Card</button>
+            </form>
+        </div>
+
+        <!-- Card Preview Section -->
+        <div class="card-section">
+            <h2>Preview</h2>
+            <div class="id-card" id="idCard">
+                <div class="card-header">
+                    <h3 id="cardHeaderText">Identity Card</h3>
+                </div>
+                <div class="card-body">
+                    <div class="card-photo" id="cardPhoto" style="display:none;">
+                        <img src="" alt="Photo" id="cardPhotoImg" style="display:none;">
+                    </div>
+                    <div class="card-info">
+                        <div class="field">
+                            <div class="field-label">Name</div>
+                            <div class="field-value" id="cardName">—</div>
+                        </div>
+                        <div class="field">
+                            <div class="field-label">ID Number</div>
+                            <div class="field-value" id="cardId">—</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-barcode" id="cardBarcode"></div>
+                <div class="card-additional" id="cardAdditional"></div>
+            </div>
+
+            <button class="btn btn-print hidden" id="printBtn" onclick="window.print()">🖨️ Print Card</button>
+        </div>
+    </div>
+
+    <!-- JsBarcode library for barcode generation -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+
+    <script>
+        const form = document.getElementById('idForm');
+        const photoInput = document.getElementById('photo');
+        const photoPreview = document.getElementById('photoPreview');
+        let photoDataUrl = null;
+
+        const colorMap = {
+            pastelBlue: 'linear-gradient(135deg, #a8c8e8 0%, #b8d4f0 50%, #c8e0f8 100%)',
+            pastelPink: 'linear-gradient(135deg, #f2b5d4 0%, #f7c8de 50%, #fcdbe8 100%)',
+            pastelLavender: 'linear-gradient(135deg, #c3aed6 0%, #d4bfe8 50%, #e5d0f9 100%)',
+            pastelMint: 'linear-gradient(135deg, #a8e6cf 0%, #b8f0d8 50%, #c8f9e2 100%)',
+            pastelPeach: 'linear-gradient(135deg, #f8c4a4 0%, #fad4b8 50%, #fce4cc 100%)',
+            pastelYellow: 'linear-gradient(135deg, #f9e4a0 0%, #fbecb8 50%, #fdf4d0 100%)',
+            pastelLilac: 'linear-gradient(135deg, #d5a8e0 0%, #e0bbe8 50%, #ebcef0 100%)',
+            pastelSage: 'linear-gradient(135deg, #b5cda3 0%, #c5d8b5 50%, #d5e3c7 100%)',
+            pastelCoral: 'linear-gradient(135deg, #f4a4a4 0%, #f8b8b8 50%, #fccccc 100%)',
+            pastelSky: 'linear-gradient(135deg, #a4d4e4 0%, #b8e0ee 50%, #ccecf8 100%)'
+        };
+
+        function updateCardPreview() {
+            const fullName = document.getElementById('fullName').value.trim();
+            const idNumber = document.getElementById('idNumber').value.trim();
+            const cardTitle = document.getElementById('cardTitle').value.trim();
+            const additionalInfo = document.getElementById('additionalInfo').value.trim();
+            const selectedColor = document.getElementById('cardColor').value;
+            const maskEnabled = document.getElementById('maskId').checked;
+
+            // Update card color
+            document.getElementById('idCard').style.background = colorMap[selectedColor];
+
+            // Update card header
+            document.getElementById('cardHeaderText').textContent = cardTitle || 'Identity Card';
+
+            // Update name
+            document.getElementById('cardName').textContent = fullName || '—';
+
+            // Update ID with masking
+            if (idNumber) {
+                const displayId = maskEnabled && idNumber.length > 6
+                    ? '******' + idNumber.slice(6)
+                    : idNumber;
+                document.getElementById('cardId').textContent = displayId;
+            } else {
+                document.getElementById('cardId').textContent = '—';
+            }
+
+            // Update additional info
+            document.getElementById('cardAdditional').textContent = additionalInfo;
+
+            // Update card photo
+            const cardPhotoImg = document.getElementById('cardPhotoImg');
+            const cardPhotoDiv = document.getElementById('cardPhoto');
+            if (photoDataUrl) {
+                cardPhotoImg.src = photoDataUrl;
+                cardPhotoImg.style.display = 'block';
+                cardPhotoDiv.style.display = 'block';
+            } else {
+                cardPhotoImg.style.display = 'none';
+                cardPhotoDiv.style.display = 'none';
+            }
+
+            // Generate barcode live if ID is provided
+            if (idNumber) {
+                generateBarcode(idNumber);
+                document.getElementById('printBtn').classList.remove('hidden');
+            } else {
+                document.getElementById('cardBarcode').innerHTML = '';
+            }
+        }
+
+        // Photo preview
+        photoInput.addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    photoDataUrl = event.target.result;
+                    photoPreview.innerHTML = `<img src="${photoDataUrl}" alt="Preview">`;
+                    updateCardPreview();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Live update listeners
+        document.getElementById('fullName').addEventListener('input', updateCardPreview);
+        document.getElementById('idNumber').addEventListener('input', updateCardPreview);
+        document.getElementById('cardTitle').addEventListener('input', updateCardPreview);
+        document.getElementById('additionalInfo').addEventListener('input', updateCardPreview);
+        document.getElementById('cardColor').addEventListener('change', updateCardPreview);
+        document.getElementById('maskId').addEventListener('change', updateCardPreview);
+
+        // Form submission (still validates before printing)
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const fullName = document.getElementById('fullName').value.trim();
+            const idNumber = document.getElementById('idNumber').value.trim();
+            const cardTitle = document.getElementById('cardTitle').value.trim();
+
+            if (!fullName || !idNumber || !cardTitle) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+
+            updateCardPreview();
+            document.getElementById('printBtn').classList.remove('hidden');
+        });
+
+        function generateBarcode(value) {
+            const barcodeContainer = document.getElementById('cardBarcode');
+            barcodeContainer.innerHTML = '<svg id="barcodeSvg"></svg>';
+
+            try {
+                JsBarcode('#barcodeSvg', value, {
+                    format: 'CODE128',
+                    width: 1.2,
+                    height: 22,
+                    displayValue: false,
+                    background: 'transparent',
+                    lineColor: '#333333',
+                    margin: 0
+                });
+            } catch (err) {
+                barcodeContainer.innerHTML = '<span style="font-size:0.7rem;color:#aaa;">Barcode error</span>';
+            }
+        }
+    </script>
+</body>
+</html>
